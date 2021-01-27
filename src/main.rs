@@ -72,6 +72,27 @@ fn draw_texture_part (state: &mut OpState, val: serde_json::value::Value, _: &mu
     return Ok(serde_json::value::Value::Null);
 }
 
+fn draw_rect (state: &mut OpState, val: serde_json::value::Value, _: &mut [ZeroCopyBuf] ) -> Result<serde_json::value::Value, error::AnyError> {
+    let draw_ref: u32 = val.get("draw_ref").unwrap().as_u64().unwrap() as u32;
+    let draw_state = state.resource_table.get::<draw::DrawContainer>(draw_ref).unwrap();
+
+    let x: i32 = val.get("x").unwrap().as_i64().unwrap() as i32;
+    let y: i32 = val.get("y").unwrap().as_i64().unwrap() as i32;
+    let width: u32 = val.get("width").unwrap().as_u64().unwrap() as u32;
+    let height: u32 = val.get("height").unwrap().as_u64().unwrap() as u32;
+
+    let color = val.get("color").unwrap().as_object().unwrap();
+    let r = color["r"].as_f64().unwrap();
+    let g = color["g"].as_f64().unwrap();
+    let b = color["b"].as_f64().unwrap();
+    let color = Color::new(r as f32, g as f32, b as f32, 1.0);
+
+    let mut draw = draw_state.refcell.borrow_mut();
+    draw.draw_rect(x as u32, y as u32, width, height, color);
+
+    return Ok(serde_json::value::Value::Null);
+}
+
 fn readfile(path:&str) -> Result<String, String> {
     let mut file = match std::fs::File::open(path) {
         Ok(file) => file,
@@ -141,9 +162,8 @@ async fn main() {
         }
     ));
 
-    js_runtime.register_op("draw_texture_part", json_op_sync(
-        draw_texture_part
-    ));
+    js_runtime.register_op("draw_texture_part", json_op_sync(draw_texture_part));
+    js_runtime.register_op("draw_rect", json_op_sync(draw_rect));
 
     // log things from js to the console
     js_runtime.register_op("log", json_op_sync(log));

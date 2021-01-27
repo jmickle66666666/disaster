@@ -53,6 +53,7 @@ impl Draw {
 
     pub fn draw_rect(&mut self, x:u32, y:u32, w:u32, h:u32, color:Color)
     {
+        let y = self.canvas.height as u32 - y - h;
         for v in y..y+h {
             for u in x..x+w {
                 self.canvas.set_pixel(u, v, color);

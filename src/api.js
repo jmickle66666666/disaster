@@ -23,8 +23,21 @@ let Config = {
 
 let Draw = {
     ref : null,
-    rect : function() { 
-        System.log("Draw." + arguments.callee.name + "() not implemented"); 
+
+    //Draw.rect(0, 0, screenSize.x, 8 * (this.messages.length+1) + 2, Colors.black);
+    rect : function(x, y, width, height, colorIndex) { 
+        let color = ColorData.get(ColorKeys[colorIndex]);
+        color.r /= 255.0;
+        color.g /= 255.0;
+        color.b /= 255.0;
+        Deno.core.jsonOpSync("draw_rect", { 
+            draw_ref: Draw.ref,
+            x: x,
+            y: y,
+            width: width,
+            height: height,
+            color: color
+        }); 
     },
     clear : function() { 
         Deno.core.jsonOpSync("draw_clear", { draw_ref: Draw.ref });  
