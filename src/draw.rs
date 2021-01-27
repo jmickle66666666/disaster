@@ -83,20 +83,27 @@ impl Draw {
 
     pub fn draw_texture_part(&mut self, x0:i32, y0:i32, texture: &Image, x_start:u32, y_start:u32, w:u32, h:u32)
     {
+        let y_start = texture.height as u32 - y_start - h;
+        let y0 = self.canvas.height as i32 - y0 - h as i32;
+
         for u in x_start..x_start+w {
 
+            let x_out = (u as i32 + x0) - x_start as i32;
+
             // safety
-            if u as i32 + x0 < 0 { continue; }
-            if u as i32 + x0 >= self.canvas.width as i32 { break; }
+            if x_out < 0 { continue; }
+            if x_out >= self.canvas.width as i32 { break; }
 
             for v in y_start..y_start+h {
 
-                if v as i32 + y0 < 0 { continue; }
-                if v as i32 + y0 >= self.canvas.height as i32 { break; }
+                let y_out = (v as i32 + y0) - y_start as i32;
+
+                if y_out < 0 { continue; }
+                if y_out >= self.canvas.height as i32 { break; }
 
                 let c = texture.get_pixel(u as u32, v as u32);
                 if c.a > 0.5 {
-                    self.canvas.set_pixel(x0 as u32 + u, y0 as u32 + v, c);
+                    self.canvas.set_pixel(x_out as u32, y_out as u32, c);
                 }
             }
         }

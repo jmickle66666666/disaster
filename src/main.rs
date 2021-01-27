@@ -3,6 +3,7 @@ use deno_core::*;
 use core::cell::RefCell;
 use std::rc::Rc;
 use std::io::Read;
+// use image::ImageFormat;
 use deno_core::error::AnyError;
 use std::collections::HashMap;
 // use std::io::Error;
@@ -17,11 +18,11 @@ fn log(_: &mut OpState, val: serde_json::value::Value, _: &mut [ZeroCopyBuf]) ->
     return Ok(serde_json::value::Value::Null);
 }
 
-async fn draw_texture_part (state: Rc<RefCell<OpState>>, val: serde_json::value::Value, _: BufVec ) -> Result<serde_json::value::Value, error::AnyError> {
+fn draw_texture_part (state: &mut OpState, val: serde_json::value::Value, _: &mut [ZeroCopyBuf] ) -> Result<serde_json::value::Value, error::AnyError> {
     
-    println!("hello");
+    // println!("hello");
     let draw_ref: u32 = val.get("draw_ref").unwrap().as_u64().unwrap() as u32;
-    let draw_state = state.borrow_mut().resource_table.get::<draw::DrawContainer>(draw_ref).unwrap();
+    let draw_state = state.resource_table.get::<draw::DrawContainer>(draw_ref).unwrap();
 
     let x: i32 = val.get("x").unwrap().as_i64().unwrap() as i32;
     let y: i32 = val.get("y").unwrap().as_i64().unwrap() as i32;
@@ -40,9 +41,21 @@ async fn draw_texture_part (state: Rc<RefCell<OpState>>, val: serde_json::value:
     // we're trying to draw a texture called `texture_name`
     // so first, load the image if we haven't loaded it already
     if !textures.contains_key(&texture_name) {
+
+        let mut file = match std::fs::File::open(&texture_name) {
+            Ok(file) => file,
+            Err(error) => panic!(error),
+        };
+
+        let mut bytes:Vec<u8> = Vec::new();
+        match file.read_to_end(&mut bytes) {
+            Ok(_) => (),
+            Err(e) => panic!(e),
+        }
+
         textures.insert(
             texture_name.to_string(),
-            load_image(&texture_name).await
+            Image::from_file_with_format(&bytes, None)
         );
     }
 
@@ -128,7 +141,7 @@ async fn main() {
         }
     ));
 
-    js_runtime.register_op("draw_texture_part", json_op_async(
+    js_runtime.register_op("draw_texture_part", json_op_sync(
         draw_texture_part
     ));
 
@@ -158,50 +171,34 @@ async fn main() {
 
     // js_runtime.execute("_", "coolFunc(\"hello from rust\");").unwrap();
 
-    js_runtime.execute("_", &format!("screenSize = {{x:{}, y:{}}}; async function a() {{ update(); }}", 320, 240)).unwrap();
+    js_runtime.execute("_", &format!("screenSize = {{x:{}, y:{}}};", 320, 240)).unwrap();
     
     // let ship_tex = load_image("res/ship1.png").await;
 
     let mut pause_js_execution = false;
 
     loop {
-        let t = get_time();
+        let t = get_frame_time();
 
         if !pause_js_execution {
-            match js_runtime.execute("_", &format!("dt = {}; a();", t)) {
+            match js_runtime.execute("base", &format!("dt = {}; update();", t)) {
                 Err(error) => {
                     pause_js_execution = true;
                     println!("{}", error);
                 },
-                Ok(_) => pause_js_execution = false,
+                Ok(_) => {
+                    pause_js_execution = false;
+                },
             };
         }
 
         clear_background(ORANGE);
-        // draw.draw_clear_color(BLACK);
-
-        // let x0 = 160 + ((6.28 / 11. + t).sin()*160.) as i32;
-        // let x1 = 160 + ((6.28 / 5.  + t).sin()*160.) as i32;
-        // let x2 = 160 + ((6.28 / 17. + t).sin()*160.) as i32;
-        // let y0 = 120 + ((6.28 / 23. + t).sin()*120.) as i32;
-        // let y1 = 120 + ((6.28 / 31. + t).sin()*120.) as i32;
-        // let y2 = 120 + ((6.28 / 13. + t).sin()*120.) as i32;
-
-        // draw.draw_line( x0, y0, x1, y1, ORANGE );
-        // draw.draw_line( x1, y1, x2, y2, ORANGE );
-        // draw.draw_line( x2, y2, x0, y0, ORANGE );
-        
-        // draw.draw_texture(160, 120, &ship_tex);
-        
-        // draw.draw_screen();
-
-
         let d = js_runtime.op_state().borrow_mut().resource_table.get::<draw::DrawContainer>(draw_ref).unwrap();
 
         let mut draw_reference = d.refcell.borrow_mut();
         draw_reference.draw_screen();        
 
-        draw_text("disaster engine", 100., 100., 16., ORANGE);
+        // draw_text("disaster engine", 100., 100., 16., ORANGE);
         next_frame().await
     }
 }
