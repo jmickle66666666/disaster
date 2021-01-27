@@ -22,15 +22,32 @@ let Config = {
 };
 
 let Draw = {
-    rect : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
-    clear : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
+    ref : null,
+    rect : function() { 
+        System.log("Draw." + arguments.callee.name + "() not implemented"); 
+    },
+    clear : function() { 
+        Deno.core.jsonOpSync("draw_clear", { draw_ref: Draw.ref });  
+    },
     text : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     line : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     line3d : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     cube : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     texture : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
-    texturePart : function() { 
-        // System.log("Draw." + arguments.callee.name + "() not implemented"); 
+
+    //Draw.texturePart(this.px - 16, this.py - 16, "sprites/sprites", 16, frame, 32, 32);
+    texturePart : function(x, y, textureName, xStart, yStart, width, height) { 
+        System.log("Draw." + arguments.callee.name + "() not implemented"); 
+        Deno.core.jsonOpSync("draw_texture_part", { 
+            draw_ref: Draw.ref,
+            x: x,
+            y: y,
+            textureName: textureName,
+            xStart: xStart,
+            yStart: yStart,
+            width: width,
+            height: height
+        });  
     },
     mesh : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     textureScaled : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },

@@ -1,15 +1,22 @@
 use macroquad::prelude::*;
 use deno_core::Resource;
+use core::cell::RefCell;
+use std::collections::HashMap;
+
+pub struct DrawContainer {
+    pub refcell : RefCell::<Draw>,
+}
 
 pub struct Draw {
     pub canvas:Image,
     pub screen:Texture2D,
     pub width:u32,
     pub height:u32,
+    pub textures: HashMap<String, Image>,
     // pub colors:[Color; 320*240],
 }
 
-impl Resource for Draw {
+impl Resource for DrawContainer {
 
 }
 
@@ -21,7 +28,8 @@ pub fn init_canvas(width:u16, height:u16) -> Draw {
         canvas : canvas,
         screen : screen,
         width: width as u32,
-        height: height as u32
+        height: height as u32,
+        textures: HashMap::new()
     };
 }
 
@@ -74,7 +82,7 @@ impl Draw {
         }
     }
 
-    pub fn draw_texture_part(&mut self, x0:i32, y0:i32, texture: &Image, x_start:u32, y_start:u32, w:u32, h:u32)
+    pub fn draw_texture_part(&mut self, x0:i32, y0:i32, texture: Image, x_start:u32, y_start:u32, w:u32, h:u32)
     {
         for u in x_start..x_start+w {
 
@@ -125,7 +133,8 @@ impl Draw {
 
     }
 
-    pub fn draw_screen(&self) {
+    pub fn draw_screen(&mut self)
+    {
         update_texture(self.screen, &self.canvas);
 
         let mut scrw = screen_width() as u32 / 320;

@@ -362,9 +362,9 @@ checksum = "0ee1c47aaa256ecabcaea351eae4a9b01ef39ed810004e298d2511ed284b1525"
 
 [[package]]
 name = "miniquad"
-version = "0.3.0-alpha.25"
+version = "0.3.0-alpha.26"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "4ffa8ff7311218b7766fe3b5ab3215b84432d93dc573ba8647e3ef0174b5c11d"
+checksum = "2f93dc8b526b2d565063e819449f0e2e7d6acfbf638c9a14c017d5f6c57e3caf"
 dependencies = [
  "sapp-android",
  "sapp-darwin",
@@ -550,9 +550,9 @@ dependencies = [
 
 [[package]]
 name = "sapp-darwin"
-version = "0.1.4"
+version = "0.1.5"
 source = "registry+https://github.com/rust-lang/crates.io-index"
-checksum = "ddd58f7952f51ede37f36211eb0ebcaee1edc79d34fea7e6d5aa9f3e1adbce0d"
+checksum = "cf0d38a22937236c2ad6b90a12656a1f307efb144b6d7516104d2169f1dc3b18"
 dependencies = [
  "cc",
 ]
