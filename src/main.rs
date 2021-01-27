@@ -4,6 +4,7 @@ use core::cell::RefCell;
 use std::rc::Rc;
 use std::io::Read;
 use deno_core::error::AnyError;
+use std::collections::HashMap;
 // use std::io::Error;
 // use std::io::ErrorKind;
 // use std::sync::Mutex;
@@ -16,7 +17,9 @@ fn log(_: &mut OpState, val: serde_json::value::Value, _: &mut [ZeroCopyBuf]) ->
     return Ok(serde_json::value::Value::Null);
 }
 
-async fn draw_texture_part (state: Rc<RefCell<OpState>>, val: serde_json::value::Value, _: BufVec) -> Result<serde_json::value::Value, AnyError> {
+async fn draw_texture_part (state: Rc<RefCell<OpState>>, val: serde_json::value::Value, _: BufVec ) -> Result<serde_json::value::Value, error::AnyError> {
+    
+    println!("hello");
     let draw_ref: u32 = val.get("draw_ref").unwrap().as_u64().unwrap() as u32;
     let draw_state = state.borrow_mut().resource_table.get::<draw::DrawContainer>(draw_ref).unwrap();
 
@@ -29,18 +32,22 @@ async fn draw_texture_part (state: Rc<RefCell<OpState>>, val: serde_json::value:
     let height: u32 = val.get("height").unwrap().as_u64().unwrap() as u32;
 
     let mut draw = draw_state.refcell.borrow_mut();
+    let mut textures = draw_state.textures.borrow_mut();
+
+    let texture_name = format!("D:\\GitHub\\tyrian\\base\\{}{}",texture_name, ".png");
+    
 
     // we're trying to draw a texture called `texture_name`
     // so first, load the image if we haven't loaded it already
-    if !draw.textures.contains_key(texture_name) {
-        draw.textures.insert(
+    if !textures.contains_key(&texture_name) {
+        textures.insert(
             texture_name.to_string(),
-            load_image(texture_name).await
+            load_image(&texture_name).await
         );
     }
 
     // now we get it from the loaded images, so we can draw it
-    let image = draw.textures.get(texture_name).unwrap();
+    let image = &textures[&texture_name];
     
     draw.draw_texture_part(
         x, y, 
@@ -98,6 +105,7 @@ async fn main() {
     let draw = draw::init_canvas(320, 240); 
     let draw_refcell = draw::DrawContainer {
         refcell : RefCell::<draw::Draw>::new(draw),
+        textures : RefCell::<HashMap<String, Image>>::new(HashMap::new())
     };
     
     
@@ -121,7 +129,7 @@ async fn main() {
     ));
 
     js_runtime.register_op("draw_texture_part", json_op_async(
-        
+        draw_texture_part
     ));
 
     // log things from js to the console
@@ -150,7 +158,7 @@ async fn main() {
 
     // js_runtime.execute("_", "coolFunc(\"hello from rust\");").unwrap();
 
-    js_runtime.execute("_", &format!("screenSize = {{x:{}, y:{}}};", 320, 240)).unwrap();
+    js_runtime.execute("_", &format!("screenSize = {{x:{}, y:{}}}; async function a() {{ update(); }}", 320, 240)).unwrap();
     
     // let ship_tex = load_image("res/ship1.png").await;
 
@@ -160,7 +168,7 @@ async fn main() {
         let t = get_time();
 
         if !pause_js_execution {
-            match js_runtime.execute("_", &format!("dt = {}; update();", t)) {
+            match js_runtime.execute("_", &format!("dt = {}; a();", t)) {
                 Err(error) => {
                     pause_js_execution = true;
                     println!("{}", error);

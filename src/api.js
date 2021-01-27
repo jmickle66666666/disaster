@@ -35,10 +35,8 @@ let Draw = {
     cube : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     texture : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
 
-    //Draw.texturePart(this.px - 16, this.py - 16, "sprites/sprites", 16, frame, 32, 32);
-    texturePart : function(x, y, textureName, xStart, yStart, width, height) { 
-        System.log("Draw." + arguments.callee.name + "() not implemented"); 
-        Deno.core.jsonOpSync("draw_texture_part", { 
+    texturePart : async function(x, y, textureName, xStart, yStart, width, height) {
+        await Deno.core.jsonOpAsync("draw_texture_part", { 
             draw_ref: Draw.ref,
             x: x,
             y: y,
@@ -49,6 +47,7 @@ let Draw = {
             height: height
         });  
     },
+
     mesh : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     textureScaled : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },
     textureTiled : function() { System.log("Draw." + arguments.callee.name + "() not implemented"); },

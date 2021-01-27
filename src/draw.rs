@@ -5,6 +5,7 @@ use std::collections::HashMap;
 
 pub struct DrawContainer {
     pub refcell : RefCell::<Draw>,
+    pub textures: RefCell::<HashMap<String, Image>>,
 }
 
 pub struct Draw {
@@ -12,7 +13,6 @@ pub struct Draw {
     pub screen:Texture2D,
     pub width:u32,
     pub height:u32,
-    pub textures: HashMap<String, Image>,
     // pub colors:[Color; 320*240],
 }
 
@@ -28,8 +28,7 @@ pub fn init_canvas(width:u16, height:u16) -> Draw {
         canvas : canvas,
         screen : screen,
         width: width as u32,
-        height: height as u32,
-        textures: HashMap::new()
+        height: height as u32
     };
 }
 
@@ -82,7 +81,7 @@ impl Draw {
         }
     }
 
-    pub fn draw_texture_part(&mut self, x0:i32, y0:i32, texture: Image, x_start:u32, y_start:u32, w:u32, h:u32)
+    pub fn draw_texture_part(&mut self, x0:i32, y0:i32, texture: &Image, x_start:u32, y_start:u32, w:u32, h:u32)
     {
         for u in x_start..x_start+w {
 
